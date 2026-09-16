@@ -1,0 +1,530 @@
+// =============================================================================
+// BufaHairs — Prisma schema
+// Money is stored as INTEGER KOBO (NGN minor units) everywhere to avoid
+// floating-point rounding in payment/inventory logic. Paystack also uses kobo.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------- ENUMS --------------------------------------
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum PaymentProvider {
+  PAYSTACK
+}
+
+enum HairTexture {
+  STRAIGHT
+  BODY_WAVE
+  DEEP_WAVE
+  WATER_WAVE
+  LOOSE_WAVE
+  CURLY
+  KINKY_STRAIGHT
+  JERRY_CURL
+  NATURAL
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED
+}
+
+enum TokenType {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+}
+
+enum NotificationType {
+  ORDER_UPDATE
+  PAYMENT
+  PROMO
+  SYSTEM
+}
+
+// ------------------------------- USER ---------------------------------------
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String
+  fullName      String
+  phone         String?
+  role          Role     @default(CUSTOMER)
+  avatarUrl     String?
+  isActive      Boolean  @default(true)
+  emailVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  addresses     Address[]
+  orders        Order[]
+  reviews       Review[]
+  cart          Cart?
+  wishlist      Wishlist?
+  refreshTokens RefreshToken[]
+  verifications VerificationToken[]
+  couponUsages  CouponUsage[]
+  notifications Notification[]
+
+  @@index([role])
+  @@index([isActive])
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  userAgent String?
+  ip        String?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model VerificationToken {
+  id        String    @id @default(uuid())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  tokenHash String    @unique
+  type      TokenType
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, type])
+}
+
+// ------------------------------- CATALOG ------------------------------------
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  imageUrl    String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products         Product[]
+  eligibleCoupons  Coupon[]  @relation("CouponCategories")
+
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+model Product {
+  id             String       @id @default(uuid())
+  name           String
+  slug           String       @unique
+  description    String
+  shortDesc      String?
+  sku            String       @unique
+  // Money in kobo
+  price          Int
+  compareAtPrice Int? // "previous price" when discounted
+  stock          Int          @default(0)
+  lowStockAt     Int          @default(5)
+  texture        HairTexture?
+  origin         String? // e.g. Brazilian, Peruvian, Vietnamese
+  weightGrams    Int?
+  category       Category     @relation(fields: [categoryId], references: [id])
+  categoryId     String
+
+  isActive       Boolean  @default(true)
+  isFeatured     Boolean  @default(false)
+  isBestSeller   Boolean  @default(false)
+  isNewArrival   Boolean  @default(false)
+
+  ratingAvg      Float    @default(0)
+  ratingCount    Int      @default(0)
+  salesCount     Int      @default(0)
+
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+
+  deletedAt      DateTime? // soft delete
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  images         ProductImage[]
+  variants       ProductVariant[]
+  reviews        Review[]
+  cartItems      CartItem[]
+  wishlistItems  WishlistItem[]
+  orderItems     OrderItem[]
+  eligibleCoupons Coupon[]      @relation("CouponProducts")
+
+  @@index([categoryId])
+  @@index([isActive, deletedAt])
+  @@index([isFeatured])
+  @@index([isBestSeller])
+  @@index([isNewArrival])
+  @@index([texture])
+  @@index([price])
+  @@index([salesCount])
+  @@index([ratingAvg])
+  @@index([createdAt])
+}
+
+model ProductImage {
+  id        String  @id @default(uuid())
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  url       String
+  publicId  String? // Cloudinary public_id (for deletion)
+  altText   String?
+  isPrimary Boolean @default(false)
+  sortOrder Int     @default(0)
+
+  @@index([productId])
+}
+
+model ProductVariant {
+  id            String   @id @default(uuid())
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId     String
+  sku           String   @unique
+  // Attributes (nullable — not every product has all of them)
+  length        Int? // inches
+  color         String?
+  density       String?
+  capSize       String?
+  priceOverride Int? // kobo; falls back to product.price when null
+  stock         Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  @@index([productId])
+  @@index([length])
+  @@index([color])
+}
+
+// ------------------------------- CART ---------------------------------------
+
+model Cart {
+  id        String     @id @default(uuid())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String     @unique
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String          @id @default(uuid())
+  cart      Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  cartId    String
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  variantId String?
+  quantity  Int             @default(1)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@unique([cartId, productId, variantId])
+  @@index([cartId])
+}
+
+// ------------------------------- WISHLIST -----------------------------------
+
+model Wishlist {
+  id        String         @id @default(uuid())
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String         @unique
+  items     WishlistItem[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model WishlistItem {
+  id         String   @id @default(uuid())
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  wishlistId String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId  String
+  createdAt  DateTime @default(now())
+
+  @@unique([wishlistId, productId])
+  @@index([wishlistId])
+}
+
+// ------------------------------- ADDRESS ------------------------------------
+
+model Address {
+  id           String   @id @default(uuid())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  label        String? // "Home", "Office"
+  fullName     String
+  phone        String
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  country      String   @default("Nigeria")
+  postalCode   String?
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ------------------------------- ORDERS -------------------------------------
+
+model Order {
+  id          String      @id @default(uuid())
+  orderNumber String      @unique
+  user        User        @relation(fields: [userId], references: [id])
+  userId      String
+  status      OrderStatus @default(PENDING)
+
+  // Customer + shipping snapshot (immutable copy at time of order)
+  email        String
+  phone        String
+  fullName     String
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  country      String  @default("Nigeria")
+  postalCode   String?
+
+  // Money (kobo)
+  subtotal      Int
+  discountTotal Int @default(0)
+  shippingTotal Int @default(0)
+  total         Int
+
+  couponCode     String?
+  coupon         Coupon? @relation(fields: [couponId], references: [id])
+  couponId       String?
+
+  shippingMethod String?
+  shippingZone   String?
+  trackingNumber String?
+  deliveryNotes  String?
+  adminNotes     String?
+
+  paidAt      DateTime?
+  shippedAt   DateTime?
+  deliveredAt DateTime?
+  cancelledAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items       OrderItem[]
+  payment     Payment?
+  couponUsage CouponUsage?
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([orderNumber])
+}
+
+model OrderItem {
+  id        String          @id @default(uuid())
+  order     Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   String
+  product   Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  variantId String?
+
+  // Snapshots — keep historical order data reliable even if product changes
+  productName  String
+  productSlug  String
+  variantLabel String?
+  sku          String
+  imageUrl     String?
+  unitPrice    Int // kobo
+  quantity     Int
+  lineTotal    Int // kobo
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Payment {
+  id               String          @id @default(uuid())
+  order            Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId          String          @unique
+  provider         PaymentProvider @default(PAYSTACK)
+  reference        String          @unique // idempotency anchor
+  status           PaymentStatus   @default(PENDING)
+  amount           Int // kobo
+  currency         String          @default("NGN")
+  channel          String? // card, bank, ussd, transfer...
+  authorizationUrl String?
+  accessCode       String?
+  paidAt           DateTime?
+  gatewayResponse  String?
+  rawResponse      Json?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([status])
+  @@index([reference])
+}
+
+// ------------------------------- REVIEWS ------------------------------------
+
+model Review {
+  id         String   @id @default(uuid())
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId  String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  orderId    String? // links to verified purchase
+  rating     Int // 1..5
+  title      String?
+  comment    String
+  imageUrl   String?
+  isApproved Boolean  @default(false)
+  isVerified Boolean  @default(false) // verified purchaser
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, productId])
+  @@index([productId, isApproved])
+}
+
+// ------------------------------- COUPONS ------------------------------------
+
+model Coupon {
+  id             String     @id @default(uuid())
+  code           String     @unique
+  description    String?
+  type           CouponType
+  value          Int // percent (0-100) OR fixed amount in kobo
+  minOrderAmount Int? // kobo
+  maxDiscount    Int? // kobo cap for percentage coupons
+  usageLimit     Int? // total redemptions allowed
+  perUserLimit   Int? // per-user redemptions
+  usedCount      Int        @default(0)
+  startsAt       DateTime?
+  expiresAt      DateTime?
+  isActive       Boolean    @default(true)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  // Empty relations => applies to the whole catalog
+  applicableProducts   Product[]     @relation("CouponProducts")
+  applicableCategories Category[]    @relation("CouponCategories")
+  usages               CouponUsage[]
+  orders               Order[]
+
+  @@index([isActive])
+  @@index([code])
+}
+
+model CouponUsage {
+  id        String   @id @default(uuid())
+  coupon    Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  couponId  String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   String   @unique
+  createdAt DateTime @default(now())
+
+  @@index([couponId, userId])
+}
+
+// ------------------------------- SHIPPING -----------------------------------
+
+model ShippingZone {
+  id          String         @id @default(uuid())
+  name        String
+  description String?
+  country     String         @default("Nigeria")
+  states      String[] // matching Nigerian states; empty => catch-all / international
+  isActive    Boolean        @default(true)
+  sortOrder   Int            @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  rates       ShippingRate[]
+
+  @@index([isActive])
+}
+
+model ShippingRate {
+  id                    String       @id @default(uuid())
+  zone                  ShippingZone @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  zoneId                String
+  name                  String // "Standard", "Express"
+  price                 Int // kobo
+  minDeliveryDays       Int          @default(2)
+  maxDeliveryDays       Int          @default(5)
+  freeShippingThreshold Int? // kobo; order subtotal above this => free
+  isActive              Boolean      @default(true)
+
+  @@index([zoneId])
+}
+
+// ------------------------------- MISC ---------------------------------------
+
+model Notification {
+  id        String           @id @default(uuid())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  type      NotificationType @default(SYSTEM)
+  title     String
+  message   String
+  data      Json?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, isRead])
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}

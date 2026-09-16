@@ -1,0 +1,50 @@
+# ---------- Dependencies ----------
+node_modules/
+.pnp
+.pnp.js
+
+# ---------- Env / secrets ----------
+.env
+.env.local
+.env.*.local
+*.pem
+!.env.example
+
+# ---------- Build output ----------
+dist/
+build/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# ---------- Prisma ----------
+backend/prisma/*.db
+backend/prisma/migrations/dev.db*
+
+# ---------- Logs ----------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---------- OS / editor ----------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# ---------- Claude Code (machine-local settings) ----------
+.claude/settings.local.json
+
+# ---------- Testing ----------
+.nyc_output/
+
+# ---------- Misc ----------
+tmp/
+temp/
+.cache/
