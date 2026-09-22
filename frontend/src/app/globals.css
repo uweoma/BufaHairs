@@ -74,14 +74,16 @@
 }
 
 @layer components {
-  /* Subtle luxe gradient used behind hero + section headers. */
+  /* Deep luxe gradient used behind hero + auth panels (carries white text). */
   .bg-luxe {
+    background-color: #4c1d95;
     background-image: radial-gradient(
         60% 120% at 100% 0%,
-        rgba(124, 58, 237, 0.12) 0%,
+        rgba(167, 139, 250, 0.35) 0%,
         transparent 60%
       ),
-      radial-gradient(50% 100% at 0% 100%, rgba(91, 33, 182, 0.1) 0%, transparent 55%);
+      radial-gradient(50% 100% at 0% 100%, rgba(124, 58, 237, 0.45) 0%, transparent 55%),
+      linear-gradient(135deg, #5b21b6 0%, #4c1d95 55%, #3b0764 100%);
   }
   .text-gradient {
     @apply bg-clip-text text-transparent;

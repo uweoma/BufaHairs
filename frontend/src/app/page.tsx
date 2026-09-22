@@ -96,8 +96,8 @@ export default async function HomePage() {
           <div className="relative hidden lg:block">
             <div className="relative ml-auto aspect-[4/5] w-full max-w-md overflow-hidden rounded-3xl bg-white/10 shadow-2xl ring-1 ring-white/20">
               <Image
-                src="https://images.unsplash.com/photo-1595499280981-4e3bb81b90bc?auto=format&fit=crop&w=800&q=80"
-                alt="Model wearing a premium BufaHairs wig"
+                src="/hero-model.jpg"
+                alt="Model with voluminous, premium natural hair"
                 fill
                 priority
                 sizes="(max-width: 1024px) 0px, 400px"
@@ -185,7 +185,7 @@ export default async function HomePage() {
       )}
 
       {/* Brand promise band */}
-      <section className="bg-dark text-white">
+      <section className="bg-luxe text-white">
         <div className="container flex flex-col items-center gap-6 py-16 text-center">
           <Sparkles className="h-8 w-8 text-gold" />
           <h2 className="max-w-2xl font-serif text-3xl font-semibold">
