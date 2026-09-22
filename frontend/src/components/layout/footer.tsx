@@ -52,13 +52,13 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-16 bg-dark text-white/80">
+    <footer className="mt-16 bg-primary-royal text-white/90">
       <div className="container py-14">
         {/* Newsletter */}
-        <div className="flex flex-col gap-6 border-b border-white/10 pb-10 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-6 border-b border-white/25 pb-10 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-md">
             <h3 className="font-serif text-2xl font-semibold text-white">Join the BufaHairs circle</h3>
-            <p className="mt-2 text-sm text-white/60">
+            <p className="mt-2 text-sm text-white/85">
               Be first to know about new arrivals, restocks and members-only offers.
             </p>
           </div>
@@ -68,16 +68,16 @@ export function Footer() {
         {/* Link columns */}
         <div className="grid grid-cols-2 gap-8 py-10 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">
-            <Logo />
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/60">{BRAND_DESCRIPTION}</p>
+            <Logo inverted />
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/85">{BRAND_DESCRIPTION}</p>
             <div className="mt-5 flex gap-3">
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="rounded-full bg-white/10 p-2 transition-colors hover:bg-white/20">
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="rounded-full bg-white/15 p-2 transition-colors hover:bg-white/25">
                 <Instagram className="h-4 w-4" />
               </a>
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="rounded-full bg-white/10 p-2 transition-colors hover:bg-white/20">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="rounded-full bg-white/15 p-2 transition-colors hover:bg-white/25">
                 <Facebook className="h-4 w-4" />
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="rounded-full bg-white/10 p-2 transition-colors hover:bg-white/20">
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="rounded-full bg-white/15 p-2 transition-colors hover:bg-white/25">
                 <Twitter className="h-4 w-4" />
               </a>
             </div>
@@ -89,7 +89,7 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="flex flex-col items-center justify-between gap-4 border-t border-white/10 pt-8 text-xs text-white/50 sm:flex-row">
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-white/25 pt-8 text-xs text-white/80 sm:flex-row">
           <p>© {year} {BRAND_NAME}. All rights reserved.</p>
           <div className="flex items-center gap-5">
             <Link href="/privacy" className="hover:text-white">Privacy Policy</Link>
@@ -111,7 +111,7 @@ function FooterColumn({ title, links }: { title: string; links: { label: string;
       <ul className="space-y-3 text-sm">
         {links.map((l) => (
           <li key={l.label}>
-            <Link href={l.href} className="text-white/60 transition-colors hover:text-white">
+            <Link href={l.href} className="text-white/85 transition-colors hover:text-white">
               {l.label}
             </Link>
           </li>
