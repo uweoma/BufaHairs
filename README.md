@@ -1,5 +1,13 @@
 # BufaHairs — Premium Hair E‑Commerce
 
+![License](https://img.shields.io/badge/license-MIT-5B21B6.svg)
+![Next.js](https://img.shields.io/badge/Next.js-14-000000?logo=next.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-20-339933?logo=node.js&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?logo=prisma&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?logo=tailwindcss&logoColor=white)
+
 A full‑stack, production‑ready e‑commerce platform for a premium human‑hair / wig brand. Real backend, real database, real authentication, real Paystack payments, a complete admin dashboard, transactional email, and a mobile‑first storefront in an elegant purple aesthetic.
 
 > **Brand note:** "BufaHairs", its logo copy, product imagery and prices are placeholders chosen to make the app runnable end‑to‑end. Swap them for real assets via environment variables and the admin dashboard — no code changes required to re‑skin (`NEXT_PUBLIC_BRAND_NAME`).
