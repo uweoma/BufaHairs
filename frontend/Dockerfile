@@ -23,11 +23,16 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+RUN apk add --no-cache libc6-compat
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# next/image optimization needs `sharp` in standalone mode; the file tracer
+# does not bundle it automatically, so install it into the runtime image.
+RUN npm install --no-save sharp@0.33.5 && chown -R nextjs:nodejs /app/node_modules
 
 USER nextjs
 EXPOSE 3000

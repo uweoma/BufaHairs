@@ -362,7 +362,7 @@ export interface AdminOverview {
     pending: number;
     awaitingFulfilment: number;
   };
-  customers: number;
+  customers: { total: number };
   products: { total: number; lowStock: number };
   recentOrders: OrderSummary[];
   topProducts: { id: string; name: string; slug: string; salesCount: number; price: number }[];

@@ -64,7 +64,7 @@ export function AdminDashboard() {
           hint={`${data.orders.pending} pending · ${data.orders.awaitingFulfilment} to fulfil`}
           href="/admin/orders"
         />
-        <StatCard icon={Users} label="Customers" value={String(data.customers)} href="/admin/customers" />
+        <StatCard icon={Users} label="Customers" value={String(data.customers.total)} href="/admin/customers" />
         <StatCard
           icon={Package}
           label="Products"
