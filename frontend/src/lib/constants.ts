@@ -2,7 +2,16 @@
 
 export const BRAND_NAME = process.env.NEXT_PUBLIC_BRAND_NAME || 'BufaHairs';
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+/**
+ * Base API URL. The browser always uses the public URL. On the server
+ * (Server Components / SSR) we prefer INTERNAL_API_URL when set, so containerised
+ * deploys can reach the backend over the internal network (e.g. the Docker
+ * service name `backend`) instead of `localhost` — which, inside the frontend
+ * container, points at the frontend itself, not the API.
+ */
+export const API_URL =
+  typeof window === 'undefined' ? process.env.INTERNAL_API_URL || PUBLIC_API_URL : PUBLIC_API_URL;
 export const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '';
 export const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '';
 

@@ -74,6 +74,10 @@ services:
         NEXT_PUBLIC_BRAND_NAME: ${NEXT_PUBLIC_BRAND_NAME:-BufaHairs}
     container_name: bufahairs_frontend
     restart: unless-stopped
+    environment:
+      # Server-side (SSR / Server Components) reach the API over the internal
+      # Docker network; the browser still uses the public NEXT_PUBLIC_API_URL.
+      INTERNAL_API_URL: ${INTERNAL_API_URL:-http://backend:4000/api}
     depends_on:
       backend:
         condition: service_healthy
