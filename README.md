@@ -107,7 +107,7 @@ docker compose up --build
 
 This starts **Postgres**, the **backend** (`http://localhost:4000/api`) and the **frontend** (`http://localhost:3000`). Database migrations are applied automatically on backend startup.
 
-Seed demo data (23 products, categories, shipping zones, coupons and demo users) once the stack is healthy:
+Seed demo data (19 products, categories, shipping zones, coupons and demo users) once the stack is healthy:
 
 ```bash
 docker compose exec backend npm run db:seed
@@ -194,7 +194,7 @@ Full references live in [`.env.example`](.env.example) (root, for compose), [`ba
 
 - Schema is defined in [`backend/prisma/schema.prisma`](backend/prisma/schema.prisma); migrations live in `backend/prisma/migrations/`.
 - `npm run prisma:migrate` — create/apply a dev migration. `npm run prisma:deploy` — apply migrations non‑interactively (used by the Docker entrypoint).
-- `npm run db:seed` — idempotent seed (upserts): categories, **23 products** with variants and images, shipping zones, sample coupons, and the two demo users.
+- `npm run db:seed` — idempotent seed (upserts): categories, **19 products** with variants and images, shipping zones, sample coupons, and the two demo users.
 - `npm run prisma:studio` — browse data in Prisma Studio.
 - Products use a soft delete (`deletedAt`); a product with order history is deactivated rather than hard‑deleted.
 
