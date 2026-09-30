@@ -12,8 +12,28 @@ const PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000
  */
 export const API_URL =
   typeof window === 'undefined' ? process.env.INTERNAL_API_URL || PUBLIC_API_URL : PUBLIC_API_URL;
-export const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '';
+export const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '2348023216740';
 export const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '';
+
+/** Contact email shown in the footer — change to your real inbox. */
+export const CONTACT_EMAIL = 'Bufahair@gmail.com';
+
+/** Icon keys the footer knows how to render. */
+export type SocialIcon = 'instagram' | 'tiktok' | 'facebook' | 'twitter';
+
+/**
+ * Social profiles shown in the footer. Paste your FULL profile URLs below
+ * (e.g. 'https://instagram.com/bufahairs'). Leave a value as '' to hide that
+ * icon — only links with a URL are rendered. This is the single place to edit,
+ * and it works in dev and in every build with no env wiring.
+ */
+const SOCIAL_DEFS: { label: string; icon: SocialIcon; href: string }[] = [
+  { label: 'Instagram', icon: 'instagram', href: 'https://www.instagram.com/bufa_hairs' },
+  { label: 'TikTok', icon: 'tiktok', href: 'https://www.tiktok.com/@bufa_hairs' },
+  { label: 'Facebook', icon: 'facebook', href: 'https://www.facebook.com/share/1BiywUNmxd/' },
+  { label: 'X (Twitter)', icon: 'twitter', href: '' },
+];
+export const SOCIAL_LINKS = SOCIAL_DEFS.filter((s) => s.href);
 
 export const BRAND_TAGLINE = 'Luxury hair, crowned for you.';
 export const BRAND_DESCRIPTION =
