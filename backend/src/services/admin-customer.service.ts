@@ -28,7 +28,7 @@ function serializeCustomer(u: {
     role: u.role,
     isActive: u.isActive,
     emailVerified: u.emailVerified,
-    joinedAt: u.createdAt,
+    createdAt: u.createdAt,
   };
 }
 
@@ -106,12 +106,10 @@ export async function getCustomer(id: string) {
 
   return {
     ...serializeCustomer(user),
-    stats: {
-      orderCount: user._count.orders,
-      addressCount: user._count.addresses,
-      reviewCount: user._count.reviews,
-      totalSpent: spend._sum.total ?? 0,
-    },
+    orderCount: user._count.orders,
+    totalSpent: spend._sum.total ?? 0,
+    addressCount: user._count.addresses,
+    reviewCount: user._count.reviews,
     recentOrders: orders.map(serializeOrderSummary),
   };
 }
