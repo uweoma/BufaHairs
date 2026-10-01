@@ -151,12 +151,13 @@ cp .env.example .env.local    # points at http://localhost:4000/api by default
 npm run dev                   # http://localhost:3000
 ```
 
-**Demo logins** (created by the seed):
+**Demo logins** — created by the seed for **local development only**.
 
-| Role     | Email                    | Password      |
-|----------|--------------------------|---------------|
-| Admin    | `admin@bufahairs.com`    | `Admin123!`   |
-| Customer | `customer@bufahairs.com` | `Password123` |
+The seed reads credentials from `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` (and
+`SEED_CUSTOMER_EMAIL` / `SEED_CUSTOMER_PASSWORD`); when unset it falls back to local dev
+defaults. **Any public deployment must set strong, unique values** — the seed refuses to
+run with `NODE_ENV=production` unless they are provided. Never reuse the dev defaults on a
+reachable deployment. See the dev default emails printed by `npm run seed`.
 
 ---
 

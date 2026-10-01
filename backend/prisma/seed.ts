@@ -445,14 +445,31 @@ async function main() {
   console.log('🌱 Seeding BufaHairs...');
 
   // --- Users ---
-  const adminHash = await bcrypt.hash('Admin123!', 12);
-  const custHash = await bcrypt.hash('Password123', 12);
+  // Credentials come from env so real deployments never use a committed (public) default.
+  // The fallbacks below are LOCAL DEV ONLY; production must supply strong secrets.
+  const isProd = process.env.NODE_ENV === 'production';
+  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@bufahairs.com';
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'Admin123!';
+  const customerEmail = process.env.SEED_CUSTOMER_EMAIL || 'customer@bufahairs.com';
+  const customerPassword = process.env.SEED_CUSTOMER_PASSWORD || 'Password123';
 
+  if (isProd && !(process.env.SEED_ADMIN_EMAIL && process.env.SEED_ADMIN_PASSWORD)) {
+    throw new Error(
+      'Refusing to seed in production without SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD. ' +
+        'The committed defaults are public — set strong, unique secrets in the environment.',
+    );
+  }
+
+  const adminHash = await bcrypt.hash(adminPassword, 12);
+  const custHash = await bcrypt.hash(customerPassword, 12);
+
+  // `update` re-applies the hash so re-running the seed rotates the password to the
+  // current env value (lets you change SEED_ADMIN_PASSWORD and re-seed to rotate).
   await prisma.user.upsert({
-    where: { email: 'admin@bufahairs.com' },
-    update: {},
+    where: { email: adminEmail },
+    update: { passwordHash: adminHash },
     create: {
-      email: 'admin@bufahairs.com',
+      email: adminEmail,
       passwordHash: adminHash,
       fullName: 'Bufa Admin',
       role: 'ADMIN',
@@ -463,10 +480,10 @@ async function main() {
   });
 
   await prisma.user.upsert({
-    where: { email: 'customer@bufahairs.com' },
-    update: {},
+    where: { email: customerEmail },
+    update: { passwordHash: custHash },
     create: {
-      email: 'customer@bufahairs.com',
+      email: customerEmail,
       passwordHash: custHash,
       fullName: 'Chidera Nwosu',
       phone: '+2348030000000',
@@ -475,7 +492,11 @@ async function main() {
       wishlist: { create: {} },
     },
   });
-  console.log('✅ Users seeded (admin@bufahairs.com / Admin123!, customer@bufahairs.com / Password123)');
+  console.log(
+    isProd
+      ? '✅ Users seeded from SEED_* env credentials'
+      : `✅ Users seeded (dev defaults: ${adminEmail} / ${customerEmail}) — set SEED_* env vars to override`,
+  );
 
   // --- Categories ---
   const categoryMap = new Map<string, string>();
